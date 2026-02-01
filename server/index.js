@@ -102,10 +102,10 @@ function addScore(side) {
         if (p.side === side) p.score++;
     });
 
-    const leadPlayer = Object.values(room.players).find(p => p.side === side);
-    if (leadPlayer && leadPlayer.score >= WIN_SCORE) {
+    const teamLead = Object.values(room.players).find(p => p.side === side);
+    if (teamLead && teamLead.score >= WIN_SCORE) {
         room.status = 'gameover';
-        io.emit('game_over', { winnerSide: side });
+        io.emit('game_over', { winnerSide: side, players: room.players });
     } else {
         io.emit('play_sound', 'score');
         resetBall();
@@ -116,9 +116,15 @@ io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
     // プレイヤー追加 (最大6人)
-    const playerCount = Object.keys(room.players).length;
-    if (playerCount < 6) {
-        const side = (playerCount % 2 === 0) ? 'left' : 'right';
+    const currentPlayers = Object.values(room.players);
+    if (currentPlayers.length < 6) {
+        // Aチーム(left)とBチーム(right)の現在の人数を数える
+        const leftCount = currentPlayers.filter(p => p.side === 'left').length;
+        const rightCount = currentPlayers.filter(p => p.side === 'right').length;
+
+        // 人数が少ない方のチームに配属する（同じならAチーム）
+        const side = (leftCount <= rightCount) ? 'left' : 'right';
+
         room.players[socket.id] = {
             id: socket.id,
             side: side,

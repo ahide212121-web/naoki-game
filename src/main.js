@@ -61,6 +61,9 @@ socket.on('update_lobby', (data) => {
     scoreBoard.classList.add('hidden');
     btnEnd.classList.add('hidden');
     resultScreen.classList.add('hidden');
+    // 待機画面に戻る際にもスコア表示を確実に0にリセット
+    scoreP1.innerText = "0";
+    scoreP2.innerText = "0";
   }
 });
 
