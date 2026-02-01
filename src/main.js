@@ -104,16 +104,35 @@ socket.on('play_sound', (type) => {
 });
 
 // Input Handling
-canvas.addEventListener('mousemove', (e) => {
+function handleInput(y) {
   if (!roomId) return;
+  // Center paddle on mouse/touch
+  socket.emit('paddle_move', { roomId, y: y - 50 }); // 50 is half paddle height
+}
 
+canvas.addEventListener('mousemove', (e) => {
   const rect = canvas.getBoundingClientRect();
   const scaleY = canvas.height / rect.height;
   const y = (e.clientY - rect.top) * scaleY;
-
-  // Center paddle on mouse
-  socket.emit('paddle_move', { roomId, y: y - 50 }); // 50 is half paddle height
+  handleInput(y);
 });
+
+// Touch Events
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const scaleY = canvas.height / rect.height;
+  const y = (e.touches[0].clientY - rect.top) * scaleY;
+  handleInput(y);
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault(); // Prevent scrolling while playing
+  const rect = canvas.getBoundingClientRect();
+  const scaleY = canvas.height / rect.height;
+  const y = (e.touches[0].clientY - rect.top) * scaleY;
+  handleInput(y);
+}, { passive: false });
 
 // Render Loop
 function render() {
