@@ -1,6 +1,11 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
@@ -10,7 +15,16 @@ const io = new Server(httpServer, {
     }
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+// 本番環境用：ビルドされたフロントエンドファイルを配信
+const clientBuildPath = join(__dirname, '../dist');
+app.use(express.static(clientBuildPath));
+
+// SPA対応：API以外のリクエストはindex.htmlを返す
+app.get('*', (req, res) => {
+    res.sendFile(join(clientBuildPath, 'index.html'));
+});
 
 // Game State
 const ROOM_ID = 'tennis_room';
