@@ -1,7 +1,7 @@
 import '../style.css'; // Import styles if not already imported by index.html (Vanilla template usually links CSS in HTML, but importing here is also fine in Vite)
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:3000');
+const socket = io(); // 引数を空にすると、現在のドメイン(Render)に自動的に接続されます
 
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
