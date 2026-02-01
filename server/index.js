@@ -22,7 +22,7 @@ const clientBuildPath = join(__dirname, '../dist');
 app.use(express.static(clientBuildPath));
 
 // SPA対応：API以外のリクエストはindex.htmlを返す
-app.get('*', (req, res) => {
+app.get('*any', (req, res) => {
     res.sendFile(join(clientBuildPath, 'index.html'));
 });
 
