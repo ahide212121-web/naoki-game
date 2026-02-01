@@ -136,6 +136,8 @@ io.on('connection', (socket) => {
             // スコアをリセット
             Object.values(room.players).forEach(p => p.score = 0);
             startGame();
+            // 全員にゲーム開始を通知して画面を切り替えさせる
+            io.emit('update_lobby', { players: room.players, status: room.status });
         }
     });
 
