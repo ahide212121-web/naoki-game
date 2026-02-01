@@ -1,152 +1,196 @@
 :root {
   --neon-blue: #00f3ff;
   --neon-pink: #ff00ff;
-  --bg-color: #050510;
-  --grid-color: rgba(0, 243, 255, 0.1);
+  --bg-dark: #050510;
+  --glass-bg: rgba(255, 255, 255, 0.05);
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-  background-color: var(--bg-color);
-  background-image:
-    linear-gradient(var(--grid-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-  background-size: 40px 40px;
-  color: #ffffff;
-  font-family: 'Orbitron', sans-serif;
+  background-color: var(--bg-dark);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
   overflow: hidden;
-}
-
-#app {
-  position: relative;
-  width: 100%;
-  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
+  height: 100vh;
 }
 
-#ui-layer {
-  position: absolute;
-  top: 20px;
+#app {
   width: 100%;
+  max-width: 900px;
   text-align: center;
-  pointer-events: none;
-  z-index: 10;
 }
 
-.game-title {
-  font-size: 3rem;
-  margin: 0;
-  text-shadow:
-    0 0 5px var(--neon-blue),
-    0 0 10px var(--neon-blue),
-    0 0 20px var(--neon-blue);
-  animation: pulse 2s infinite;
+.glow-text {
+  font-family: 'Rajdhani', sans-serif;
+  letter-spacing: 4px;
+  color: #fff;
+  text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+  margin-bottom: 10px;
 }
 
-#status-message {
-  font-size: 1.5rem;
-  color: var(--neon-pink);
-  margin-top: 10px;
-  text-shadow: 0 0 5px var(--neon-pink);
-}
-
+/* Score Board */
 #score-board {
   display: flex;
   justify-content: center;
-  gap: 100px;
-  margin-top: 20px;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 20px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
   font-size: 2rem;
+}
+
+.team-score {
+  display: flex;
+  flex-direction: column;
+}
+
+.team-label {
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+
+.team-score.left {
+  color: var(--neon-blue);
+}
+
+.team-score.right {
+  color: var(--neon-pink);
+}
+
+/* Game Container */
+#game-container {
+  position: relative;
+  width: 800px;
+  height: 600px;
+  margin: 0 auto;
+  border: 2px solid rgba(0, 243, 255, 0.3);
+  box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+  background: var(--bg-dark);
+}
+
+#game-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Overlays */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(5, 5, 16, 0.8);
+  backdrop-filter: blur(5px);
+  z-index: 10;
+  transition: opacity 0.3s;
+}
+
+.overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 40px;
+  border-radius: 20px;
+  width: 80%;
+  max-width: 500px;
+}
+
+/* Lobby List */
+#player-list {
+  display: flex;
+  justify-content: space-around;
+  margin: 30px 0;
+}
+
+.team-col h3 {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+#list-left {
+  color: var(--neon-blue);
+}
+
+#list-right {
+  color: var(--neon-pink);
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  padding: 5px 0;
   font-weight: bold;
 }
 
-#result-screen {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(5, 5, 16, 0.9);
-  border: 2px solid var(--neon-blue);
-  box-shadow: 0 0 30px var(--neon-blue);
-  padding: 40px;
-  text-align: center;
-  z-index: 20;
-  width: 300px;
+li.me::after {
+  content: " (YOU)";
+  font-size: 0.7rem;
+  vertical-align: middle;
 }
 
-#result-message {
-  font-size: 3rem;
-  margin: 0 0 30px 0;
-  color: #fff;
-  text-shadow: 0 0 10px var(--neon-pink);
-}
-
-.button-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-button {
+/* Buttons */
+.btn-primary {
   background: transparent;
   border: 2px solid var(--neon-blue);
   color: var(--neon-blue);
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.2rem;
-  padding: 10px 20px;
+  padding: 12px 30px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
   text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
-button:hover {
+.btn-primary:hover {
   background: var(--neon-blue);
-  color: #000;
+  color: var(--bg-dark);
   box-shadow: 0 0 20px var(--neon-blue);
 }
 
-.status-small {
-  margin-top: 15px;
-  font-size: 0.9rem;
-  color: #aaa;
-  display: none;
+.btn-danger {
+  margin-top: 20px;
+  background: transparent;
+  border: 2px solid #ff4b4b;
+  color: #ff4b4b;
+  padding: 8px 20px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-.status-small.visible {
-  display: block;
+.btn-danger:hover {
+  background: #ff4b4b;
+  color: white;
 }
 
 .hidden {
   display: none !important;
 }
 
-canvas {
-  background: rgba(0, 0, 0, 0.5);
-  border: 2px solid var(--neon-blue);
-  box-shadow: 0 0 20px var(--neon-blue);
-  max-width: 100%;
-  max-height: 80vh;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0.8;
-    text-shadow: 0 0 5px var(--neon-blue);
+@media (max-width: 820px) {
+  #game-container {
+    width: 95vw;
+    height: 71vw;
   }
 
-  50% {
-    opacity: 1;
-    text-shadow: 0 0 20px var(--neon-blue), 0 0 30px var(--neon-blue);
-  }
-
-  100% {
-    opacity: 0.8;
-    text-shadow: 0 0 5px var(--neon-blue);
+  .glass-panel {
+    padding: 20px;
   }
 }

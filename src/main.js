@@ -1,21 +1,25 @@
-import '../style.css'; // Import styles if not already imported by index.html (Vanilla template usually links CSS in HTML, but importing here is also fine in Vite)
+import '../style.css';
 import { io } from 'socket.io-client';
 
-const socket = io(); // 引数を空にすると、現在のドメイン(Render)に自動的に接続されます
+const socket = io();
 
+// DOM Elements
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
-const startusEl = document.getElementById('status-message');
-const scoreBoard = document.getElementById('score-board');
 const scoreP1 = document.getElementById('score-p1');
 const scoreP2 = document.getElementById('score-p2');
+const lobbyScreen = document.getElementById('lobby-screen');
+const resultScreen = document.getElementById('result-screen');
+const btnStart = document.getElementById('btn-start');
+const btnEnd = document.getElementById('btn-end');
+const scoreBoard = document.getElementById('score-board');
+const listLeft = document.getElementById('list-left');
+const listRight = document.getElementById('list-right');
 
-// Game State
 let gameState = null;
 let myId = null;
-let roomId = null;
 
-// Audio (Standard browser API - simple beep)
+// Audio
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playBeep(freq = 440, type = 'square', duration = 0.1) {
   if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -33,22 +37,31 @@ function playBeep(freq = 440, type = 'square', duration = 0.1) {
 // Socket Events
 socket.on('connect', () => {
   myId = socket.id;
-  startusEl.innerText = 'Connected! Searching for opponent...';
 });
 
-socket.on('waiting', (data) => {
-  startusEl.innerText = data.message;
-});
+socket.on('update_lobby', (data) => {
+  listLeft.innerHTML = '';
+  listRight.innerHTML = '';
 
-socket.on('match_start', (data) => {
-  roomId = data.roomId;
-  startusEl.innerText = 'Match Starting!';
-  scoreBoard.classList.remove('hidden');
-  document.getElementById('result-screen').classList.add('hidden'); // Hide result screen if visible
-  document.getElementById('replay-status').classList.remove('visible'); // Hide waiting status 
-  setTimeout(() => {
-    startusEl.classList.add('hidden');
-  }, 1000);
+  Object.values(data.players).forEach(p => {
+    const li = document.createElement('li');
+    li.innerText = p.id === myId ? "YOU" : "PLAYER";
+    if (p.id === myId) li.classList.add('me');
+
+    if (p.side === 'left') listLeft.appendChild(li);
+    else listRight.appendChild(li);
+  });
+
+  if (data.status === 'playing') {
+    lobbyScreen.classList.add('hidden');
+    scoreBoard.classList.remove('hidden');
+    btnEnd.classList.remove('hidden');
+  } else {
+    lobbyScreen.classList.remove('hidden');
+    scoreBoard.classList.add('hidden');
+    btnEnd.classList.add('hidden');
+    resultScreen.classList.add('hidden');
+  }
 });
 
 socket.on('game_update', (data) => {
@@ -58,44 +71,22 @@ socket.on('game_update', (data) => {
 
 socket.on('game_over', (data) => {
   gameState = null;
-  // Show result
-  const resultScreen = document.getElementById('result-screen');
-  const resultMessage = document.getElementById('result-message');
   resultScreen.classList.remove('hidden');
+  const msg = document.getElementById('result-message');
 
-  if (data.winnerId === myId) {
-    resultMessage.innerText = 'YOU WIN';
-    resultMessage.style.color = '#00f3ff';
+  if (data.winnerSide === 'none') {
+    msg.innerText = "MATCH ENDED";
   } else {
-    resultMessage.innerText = 'YOU LOSE';
-    resultMessage.style.color = '#ff00ff';
+    const myPlayer = Object.values(data.players || {}).find(p => p.id === myId);
+    if (myPlayer && myPlayer.side === data.winnerSide) {
+      msg.innerText = "YOUR TEAM WINS!";
+      msg.style.color = "#00f3ff";
+    } else {
+      msg.innerText = "YOUR TEAM LOSES";
+      msg.style.color = "#ff00ff";
+    }
   }
-});
-
-socket.on('replay_wait', () => {
-  document.getElementById('replay-status').classList.add('visible');
-  document.getElementById('replay-status').innerText = 'Waiting for opponent...';
-});
-
-socket.on('player_left', () => {
-  startusEl.innerText = 'Opponent Left. Game Over.';
-  startusEl.classList.remove('hidden');
-  gameState = null;
-  setTimeout(() => {
-    location.reload();
-  }, 3000);
-});
-
-// UI Buttons
-document.getElementById('btn-replay').addEventListener('click', () => {
-  if (roomId) {
-    socket.emit('request_replay', { roomId });
-    document.getElementById('replay-status').classList.add('visible');
-  }
-});
-
-document.getElementById('btn-exit').addEventListener('click', () => {
-  location.reload();
+  btnEnd.classList.add('hidden');
 });
 
 socket.on('play_sound', (type) => {
@@ -103,46 +94,48 @@ socket.on('play_sound', (type) => {
   if (type === 'score') playBeep(200, 'sawtooth', 0.3);
 });
 
-// Input Handling
-function handleInput(y) {
-  if (!roomId) return;
-  // Center paddle on mouse/touch
-  socket.emit('paddle_move', { roomId, y: y - 50 }); // 50 is half paddle height
+// Controls
+btnStart.addEventListener('click', () => {
+  socket.emit('start_request');
+});
+
+btnEnd.addEventListener('click', () => {
+  socket.emit('force_end');
+});
+
+document.getElementById('btn-replay').addEventListener('click', () => {
+  location.reload();
+});
+
+function handleInput(x, y) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
+  const gameX = (x - rect.left) * scaleX;
+  const gameY = (y - rect.top) * scaleY;
+
+  socket.emit('paddle_move', { x: gameX, y: gameY });
 }
 
 canvas.addEventListener('mousemove', (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const scaleY = canvas.height / rect.height;
-  const y = (e.clientY - rect.top) * scaleY;
-  handleInput(y);
+  handleInput(e.clientX, e.clientY);
 });
 
-// Touch Events
-canvas.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  const rect = canvas.getBoundingClientRect();
-  const scaleY = canvas.height / rect.height;
-  const y = (e.touches[0].clientY - rect.top) * scaleY;
-  handleInput(y);
-}, { passive: false });
-
 canvas.addEventListener('touchmove', (e) => {
-  e.preventDefault(); // Prevent scrolling while playing
-  const rect = canvas.getBoundingClientRect();
-  const scaleY = canvas.height / rect.height;
-  const y = (e.touches[0].clientY - rect.top) * scaleY;
-  handleInput(y);
+  e.preventDefault();
+  handleInput(e.touches[0].clientX, e.touches[0].clientY);
 }, { passive: false });
 
-// Render Loop
+// Render
 function render() {
   if (!gameState) return;
 
-  // Clear
+  // Background
   ctx.fillStyle = '#050510';
-  ctx.fillRect(0, 0, canvas.width, canvas.height); // Clear with bg color to avoid trails if transparent
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Draw Net
+  // Center Line
   ctx.strokeStyle = 'rgba(0, 243, 255, 0.2)';
   ctx.setLineDash([10, 15]);
   ctx.beginPath();
@@ -152,25 +145,25 @@ function render() {
   ctx.setLineDash([]);
 
   // Draw Players
-  Object.values(gameState.players).forEach(player => {
-    ctx.fillStyle = player.id === myId ? '#00f3ff' : '#ff00ff';
-    ctx.shadowBlur = 20;
+  Object.values(gameState.players).forEach(p => {
+    ctx.fillStyle = p.side === 'left' ? '#00f3ff' : '#ff00ff';
+    ctx.shadowBlur = p.id === myId ? 25 : 10;
     ctx.shadowColor = ctx.fillStyle;
-    ctx.fillRect(player.x, player.y, 10, 100);
 
-    // Update Score UI
-    if (player.side === 'left') scoreP1.innerText = player.score;
-    else scoreP2.innerText = player.score;
+    ctx.fillRect(p.x, p.y, 10, 100);
+
+    // Update score
+    if (p.side === 'left') scoreP1.innerText = p.score;
+    else scoreP2.innerText = p.score;
   });
 
   // Draw Ball
   const ball = gameState.ball;
   ctx.fillStyle = '#ffffff';
-  ctx.shadowBlur = 10;
+  ctx.shadowBlur = 15;
   ctx.shadowColor = '#ffffff';
   ctx.beginPath();
-  ctx.arc(ball.x + 5, ball.y + 5, 5, 0, Math.PI * 2); // +5 for centering since size is 10
+  ctx.arc(ball.x + 5, ball.y + 5, 5, 0, Math.PI * 2);
   ctx.fill();
-
   ctx.shadowBlur = 0;
 }

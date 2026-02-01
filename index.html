@@ -1,33 +1,70 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cyber Tennis Online</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Player Cyber Tennis</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Rajdhani:wght@500;700&display=swap"
+    rel="stylesheet">
 </head>
 
 <body>
   <div id="app">
-    <div id="ui-layer">
-      <h1 class="game-title">CYBER TENNIS</h1>
-      <div id="status-message">Connecting to server...</div>
+    <header>
+      <h1 class="glow-text">CYBER TENNIS TEAM</h1>
       <div id="score-board" class="hidden">
-        <div class="score p1">P1: <span id="score-p1">0</span></div>
-        <div class="score p2">P2: <span id="score-p2">0</span></div>
+        <div class="team-score left">
+          <span class="team-label">TEAM A</span>
+          <span id="score-p1">0</span>
+        </div>
+        <div class="vs">VS</div>
+        <div class="team-score right">
+          <span id="score-p2">0</span>
+          <span class="team-label">TEAM B</span>
+        </div>
       </div>
-    </div>
-    <div id="result-screen" class="hidden">
-      <h2 id="result-message">YOU WIN</h2>
-      <div class="button-container">
-        <button id="btn-replay">REPLAY</button>
-        <button id="btn-exit">EXIT</button>
+    </header>
+
+    <main>
+      <div id="game-container">
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+
+        <!-- Lobby Overlay -->
+        <div id="lobby-screen" class="overlay">
+          <div class="glass-panel">
+            <h2>GAME LOBBY</h2>
+            <div id="player-list">
+              <div class="team-col">
+                <h3>TEAM A</h3>
+                <ul id="list-left"></ul>
+              </div>
+              <div class="team-col">
+                <h3>TEAM B</h3>
+                <ul id="list-right"></ul>
+              </div>
+            </div>
+            <p id="status-message">Waiting for players...</p>
+            <button id="btn-start" class="btn-primary">START GAME</button>
+          </div>
+        </div>
+
+        <!-- Result Overlay -->
+        <div id="result-screen" class="overlay hidden">
+          <div class="glass-panel">
+            <h2 id="result-message">YOU WIN</h2>
+            <button id="btn-replay" class="btn-primary">PLAY AGAIN</button>
+          </div>
+        </div>
       </div>
-      <div id="replay-status" class="status-small">Waiting for opponent...</div>
-    </div>
-    <canvas id="game-canvas" width="800" height="600"></canvas>
+
+      <div class="controls-ui">
+        <button id="btn-end" class="btn-danger hidden">END MATCH</button>
+      </div>
+    </main>
   </div>
   <script type="module" src="/src/main.js"></script>
 </body>
