@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cyber Tennis Online</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="app">
+    <div id="ui-layer">
+      <h1 class="game-title">CYBER TENNIS</h1>
+      <div id="status-message">Connecting to server...</div>
+      <div id="score-board" class="hidden">
+        <div class="score p1">P1: <span id="score-p1">0</span></div>
+        <div class="score p2">P2: <span id="score-p2">0</span></div>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden">
+      <h2 id="result-message">YOU WIN</h2>
+      <div class="button-container">
+        <button id="btn-replay">REPLAY</button>
+        <button id="btn-exit">EXIT</button>
+      </div>
+      <div id="replay-status" class="status-small">Waiting for opponent...</div>
+    </div>
+    <canvas id="game-canvas" width="800" height="600"></canvas>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
