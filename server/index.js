@@ -181,7 +181,10 @@ function startGameLoop(roomId) {
                 ball.y <= pLeft.y + PADDLE_HEIGHT &&
                 ball.dx < 0
             ) {
-                ball.dx *= -1.1; // Speed up slightly
+                // 加速倍率を少しマイルドに (1.1 -> 1.05) し、最高速度を制限
+                if (Math.abs(ball.dx) < 15) ball.dx *= -1.05;
+                else ball.dx *= -1;
+
                 const hitPos = (ball.y - pLeft.y) / PADDLE_HEIGHT;
                 ball.dy += (hitPos - 0.5) * 4;
                 io.to(roomId).emit('play_sound', 'hit');
@@ -194,7 +197,10 @@ function startGameLoop(roomId) {
                 ball.y <= pRight.y + PADDLE_HEIGHT &&
                 ball.dx > 0
             ) {
-                ball.dx *= -1.1;
+                // 加速倍率を少しマイルドに (1.1 -> 1.05) し、最高速度を制限
+                if (Math.abs(ball.dx) < 15) ball.dx *= -1.05;
+                else ball.dx *= -1;
+
                 const hitPos = (ball.y - pRight.y) / PADDLE_HEIGHT;
                 ball.dy += (hitPos - 0.5) * 4;
                 io.to(roomId).emit('play_sound', 'hit');
@@ -208,6 +214,12 @@ function startGameLoop(roomId) {
             // Right scores
             if (rightPlayerId) {
                 room.players[rightPlayerId].score++;
+                // 最終スコアをクライアントに一度送る
+                io.to(roomId).emit('game_update', {
+                    ball: room.ball,
+                    players: room.players
+                });
+
                 if (room.players[rightPlayerId].score >= WIN_SCORE) {
                     handleWin(roomId, rightPlayerId);
                     return;
@@ -219,6 +231,12 @@ function startGameLoop(roomId) {
             // Left scores
             if (leftPlayerId) {
                 room.players[leftPlayerId].score++;
+                // 最終スコアをクライアントに一度送る
+                io.to(roomId).emit('game_update', {
+                    ball: room.ball,
+                    players: room.players
+                });
+
                 if (room.players[leftPlayerId].score >= WIN_SCORE) {
                     handleWin(roomId, leftPlayerId);
                     return;
@@ -249,8 +267,9 @@ function handleWin(roomId, winnerId) {
 function resetBall(room) {
     room.ball.x = CANVAS_WIDTH / 2;
     room.ball.y = CANVAS_HEIGHT / 2;
-    room.ball.dx = (Math.random() > 0.5 ? 4 : -4);
-    room.ball.dy = (Math.random() * 4) - 2;
+    // 初期速度を少し落とす (4 -> 3)
+    room.ball.dx = (Math.random() > 0.5 ? 3 : -3);
+    room.ball.dy = (Math.random() * 2) - 1; // 垂直方向の初期移動も抑える
 }
 
 function resetGame(room) {
